@@ -6,7 +6,7 @@
 [![Bareos](https://img.shields.io/badge/Bareos-25.0.1-green)](https://github.com/bareos/bareos)
 [![Multi-Arch](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-lightgrey)](https://github.com/edeckers/bareos-factory)
 
-Builder and publisher of [Bareos](https://bareos.com) Docker images.
+Builder and publisher of Docker images for [Bareos](https://bareos.com); an open-source backup, archiving, and recovery solution for enterprise data protection.
 
 > **Note:** This project is maintained on a best-effort basis. See [Project Status](#project-status--maintenance) for details.
 
@@ -16,6 +16,24 @@ Builder and publisher of [Bareos](https://bareos.com) Docker images.
 - **edeckers/bareos-dir:25.0.1** - Bareos Director
 - **edeckers/bareos-fd:25.0.1** - Bareos File Daemon
 - **edeckers/bareos-sd:25.0.1** - Bareos Storage Daemon
+
+## Requirements
+
+To run a complete Bareos backup infrastructure, you need:
+
+- **PostgreSQL Database** - Required for the Director's catalog
+  - Minimum version: PostgreSQL 12 (images built with PostgreSQL 18)
+  - Must be accessible from the Director container
+  - Initialize using the Director's `db:init` command
+
+- **Network Connectivity** - Bareos components communicate over specific ports:
+  - Director: Port 9101 (for Console connections)
+  - Storage Daemon: Port 9103 (for Director and File Daemon connections)
+  - File Daemon: Port 9102 (for Director connections)
+
+- **Storage** - The Storage Daemon requires persistent storage for backup archives
+
+These images assume you will provide your own PostgreSQL instance and handle network configuration appropriate for your environment.
 
 ## Quick Start
 
@@ -44,18 +62,44 @@ docker run -d --name bareos-fd edeckers/bareos-fd:25.0.1
 docker run -d --name bareos-sd edeckers/bareos-sd:25.0.1
 ```
 
+## Environment Variables
+
+### Director
+
+These are all required, they're used to verify the database connection before starting the Director:
+
+- `DB_HOST` - PostgreSQL host
+- `DB_PORT` - PostgreSQL port
+- `DB_NAME` - Database name
+- `DB_USER` - Database user
+- `DB_PASSWORD` - Database password
+
+### Storage Daemon
+
+- None
+
+### File Daemon
+
+- None
+
 ## Database Commands
 
-The Director image includes database management commands:
+The Director image includes database management commands for PostgreSQL catalog setup:
 
-- `db:init` - Initialize a new Bareos database
-- `db:update` - Update existing database schema
+- `db:init` - Initialize a new Bareos database (run once on first setup)
+- `db:update` - Update existing database schema (run after upgrading Bareos versions)
+
+Example:
+```bash
+docker run --rm \
+  -e DB_HOST=postgres \
+  -e DB_PASSWORD=bareos \
+  edeckers/bareos-dir:25.0.1 db:init
+```
 
 ## Architecture Support
 
 All images support both **amd64** and **arm64** architectures.
-
-Replace the entire "Building" section with this:
 
 ## Building
 
@@ -86,7 +130,6 @@ To build only specific images, set the corresponding build flags:
 
 ```bash
 # Build only Director and File Daemon
-
 BF_BUILD_DEPS=1 BF_BUILD_DIR=1 BF_BUILD_FD=1 BF_BUILD_SD=0 build.sh
 ```
 
@@ -104,6 +147,20 @@ All containers start with reasonable defaults when run without arguments. Mount 
 docker run -d \
   -v /path/to/config:/etc/bareos \
   edeckers/bareos-dir:25.0.1
+```
+
+## Troubleshooting
+
+### Permission Issues
+If the File Daemon cannot access certain files, run the container as root:
+```bash
+docker run -d --user root --name bareos-fd edeckers/bareos-fd:25.0.1
+```
+
+### Database Connection Issues
+Ensure PostgreSQL is accessible and credentials are correct. Test with:
+```bash
+docker run --rm postgres:18 psql -h <DB_HOST> -U bareos -d bareos
 ```
 
 ## Project Status & Maintenance
@@ -130,7 +187,7 @@ This project is maintained on a **best-effort basis**. I built these images to s
 
 ## Acknowledgements
 
-When exploring the Bareos,  I found [this Bareos Docker repository of @barcus](https://github.com/barcus/bareos) extremely useful - got me started quickly and allowed me to get quickly acquainted with the software. It was also an inspiration for this repository.
+When exploring Bareos, I found [this Bareos Docker repository of @barcus](https://github.com/barcus/bareos) extremely useful - got me started quickly and allowed me to get quickly acquainted with the software. It was also an inspiration for this repository.
 
 ## License
 
@@ -145,3 +202,4 @@ The Bareos software built and distributed through these Docker images is license
 - Bareos license: https://github.com/bareos/bareos/blob/master/LICENSE.txt
 
 By using these Docker images, you agree to comply with the AGPL-3.0-only license terms for Bareos.
+
