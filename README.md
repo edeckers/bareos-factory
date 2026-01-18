@@ -185,13 +185,17 @@ This project is maintained on a **best-effort basis**. I built these images to s
 - Currently focused on Debian/Ubuntu base images
 - No plans to support other distributions (Alpine, RHEL, etc.) unless there's significant community interest and contribution
 
+## Security issues
+
+The security policy of this project is described in [SECURITY.md](SECURITY.md)
+
 ## Acknowledgements
 
 When exploring Bareos, I found [this Bareos Docker repository of @barcus](https://github.com/barcus/bareos) extremely useful - got me started quickly and allowed me to get quickly acquainted with the software. It was also an inspiration for this repository.
 
 ## License
 
-MPL-2.0
+[MPL-2.0](LICENSE)
 
 ### Bareos License
 
