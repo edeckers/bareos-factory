@@ -3,7 +3,7 @@
 set -e
 
 # Current version (will be updated by this script)
-CURRENT_VERSION="24.0.8"
+CURRENT_VERSION="25.0.0"
 
 # Check if version argument is provided
 if [ -z "$1" ]; then

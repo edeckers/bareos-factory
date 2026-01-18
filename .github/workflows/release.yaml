@@ -362,6 +362,6 @@ jobs:
 
             ## License Notice
             The `.deb` packages contain Bareos software licensed under AGPL-3.0-only.
-            Source code: https://github.com/bareos/bareos/tree/Release/24.0.8
+            Source code: https://github.com/bareos/bareos/tree/Release/25.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
