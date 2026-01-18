@@ -1,0 +1,367 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - '[0-9]*.[0-9]*.[0-9]*'
+  workflow_dispatch:
+
+permissions:
+  contents: write  # Create Releases
+
+env:
+  BF_BAREOS_VERSION: ${{ github.ref_name }}
+  BF_POSTGRES_VERSION: 18
+
+jobs:
+  # Step 1: Build deps per-arch
+  build-deps:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            arch: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push bareos-deps by digest
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/deps
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+            POSTGRES_VERSION=${{ env.BF_POSTGRES_VERSION }}
+          outputs: type=image,name=edeckers/bareos-deps,push-by-digest=true,name-canonical=true,push=true
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          echo "${{ steps.build.outputs.digest }}" > /tmp/digests/deps-${{ matrix.arch }}.txt
+      
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-deps-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Step 2: Merge deps into multi-arch manifest
+  merge-deps:
+    runs-on: ubuntu-latest
+    needs: [build-deps]
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-deps-*
+          merge-multiple: true
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Create deps manifest
+        run: |
+          amd64_digest=$(cat /tmp/digests/deps-amd64.txt)
+          arm64_digest=$(cat /tmp/digests/deps-arm64.txt)
+          
+          docker buildx imagetools create \
+            -t edeckers/bareos-deps:${{ env.BF_BAREOS_VERSION }} \
+            edeckers/bareos-deps@${amd64_digest} \
+            edeckers/bareos-deps@${arm64_digest}
+      
+      - name: Inspect deps image
+        run: |
+          docker buildx imagetools inspect edeckers/bareos-deps:${{ env.BF_BAREOS_VERSION }}
+
+  # Step 3: Build dir/fd/sd per-arch (deps manifest is now available)
+  build-services:
+    runs-on: ${{ matrix.runner }}
+    needs: [merge-deps]
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            arch: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push bareos-dir by digest
+        id: build-dir
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/dir
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+            POSTGRES_VERSION=${{ env.BF_POSTGRES_VERSION }}
+          outputs: type=image,name=edeckers/bareos-dir,push-by-digest=true,name-canonical=true,push=true
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push bareos-fd by digest
+        id: build-fd
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/fd
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+          outputs: type=image,name=edeckers/bareos-fd,push-by-digest=true,name-canonical=true,push=true
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push bareos-sd by digest
+        id: build-sd
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/sd
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+          outputs: type=image,name=edeckers/bareos-sd,push-by-digest=true,name-canonical=true,push=true
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Export digests
+        run: |
+          mkdir -p /tmp/digests
+          echo "${{ steps.build-dir.outputs.digest }}" > /tmp/digests/dir-${{ matrix.arch }}.txt
+          echo "${{ steps.build-fd.outputs.digest }}" > /tmp/digests/fd-${{ matrix.arch }}.txt
+          echo "${{ steps.build-sd.outputs.digest }}" > /tmp/digests/sd-${{ matrix.arch }}.txt
+      
+      - name: Upload digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-services-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Step 4: Merge dir/fd/sd into multi-arch manifests
+  merge-services:
+    runs-on: ubuntu-latest
+    needs: [build-services]
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-services-*
+          merge-multiple: true
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Create manifest lists and push
+        run: |
+          for image in dir fd sd; do
+            amd64_digest=$(cat /tmp/digests/${image}-amd64.txt)
+            arm64_digest=$(cat /tmp/digests/${image}-arm64.txt)
+            
+            echo "Creating manifest for edeckers/bareos-${image}:${{ env.BF_BAREOS_VERSION }}"
+            docker buildx imagetools create \
+              -t edeckers/bareos-${image}:${{ env.BF_BAREOS_VERSION }} \
+              edeckers/bareos-${image}@${amd64_digest} \
+              edeckers/bareos-${image}@${arm64_digest}
+          done
+      
+      - name: Inspect images
+        run: |
+          for image in dir fd sd; do
+            docker buildx imagetools inspect edeckers/bareos-${image}:${{ env.BF_BAREOS_VERSION }}
+          done
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [merge-services]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      
+      - name: Extract .deb files from bareos-deps
+        run: |
+          mkdir -p ./debs/amd64 ./debs/arm64 ./debs/all
+      
+          docker create --platform linux/amd64 --name temp-deps-amd64 \
+            edeckers/bareos-deps:${{ env.BF_BAREOS_VERSION }}
+          docker cp temp-deps-amd64:/opt/ ./debs/amd64/
+          docker rm temp-deps-amd64
+      
+          docker create --platform linux/arm64 --name temp-deps-arm64 \
+            edeckers/bareos-deps:${{ env.BF_BAREOS_VERSION }}
+          docker cp temp-deps-arm64:/opt/ ./debs/arm64/
+          docker rm temp-deps-arm64
+      
+          # Move architecture-independent packages to separate directory
+          mv ./debs/amd64/opt/*_all.deb ./debs/all/ 2>/dev/null || true
+          rm -f ./debs/arm64/opt/*_all.deb 2>/dev/null || true
+
+      - name: Generate SHA256 checksums
+        run: |
+          # Create combined checksum file
+          cd ./debs/amd64/opt
+          sha256sum *.deb >> ../../SHA256SUMS
+          cd ../../arm64/opt
+          sha256sum *.deb >> ../../SHA256SUMS
+          cd ../../all
+          sha256sum *.deb >> ../SHA256SUMS 2>/dev/null || true
+          cd ../..
+
+      - name: Determine if this is the latest release
+        id: check_latest
+        run: |
+          # Get all tags, sort them, and check if current tag is the latest
+          LATEST_TAG=$(git tag -l '[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -n1)
+          if [ "${{ github.ref_name }}" == "$LATEST_TAG" ]; then
+            echo "is_latest=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_latest=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Extract major version (e.g. 24.0.1 -> 24)
+          VERSION="${{ github.ref_name }}"
+          MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
+          echo "major_version=$MAJOR_VERSION" >> $GITHUB_OUTPUT
+
+          # Check if this is the latest release for this major version
+          LATEST_MAJOR=$(git tag -l "${MAJOR_VERSION}.*" | sort -V | tail -n1)
+          if [ "${{ github.ref_name }}" == "$LATEST_MAJOR" ]; then
+            echo "is_latest_major=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_latest_major=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Tag as latest
+        if: steps.check_latest.outputs.is_latest == 'true'
+        run: |
+          for image in bareos-deps bareos-dir bareos-fd bareos-sd; do
+            docker buildx imagetools create \
+              --tag edeckers/${image}:latest \
+              edeckers/${image}:${{ env.BF_BAREOS_VERSION }}
+          done
+
+      - name: Tag major version
+        if: steps.check_latest.outputs.is_latest_major == 'true'
+        run: |
+          MAJOR_VERSION=${{ steps.check_latest.outputs.major_version }}
+          for image in bareos-deps bareos-dir bareos-fd bareos-sd; do
+            docker buildx imagetools create \
+              --tag edeckers/${image}:${MAJOR_VERSION} \
+              edeckers/${image}:${{ env.BF_BAREOS_VERSION }}
+          done
+ 
+      - name: Get Docker image digests
+        id: digests
+        run: |
+          DIGEST_TEXT=""
+
+          for image in bareos-deps bareos-dir bareos-fd bareos-sd; do
+            DIGEST=$(docker buildx imagetools inspect edeckers/${image}:${{ env.BF_BAREOS_VERSION }} --format '{{json .Manifest.Digest}}' | jq -r)
+            DIGEST_TEXT="${DIGEST_TEXT}- **edeckers/${image}:${{ env.BF_BAREOS_VERSION }}**"$'\n'
+            DIGEST_TEXT="${DIGEST_TEXT}  \`\`\`"$'\n'
+            DIGEST_TEXT="${DIGEST_TEXT}  ${DIGEST}"$'\n'
+            DIGEST_TEXT="${DIGEST_TEXT}  \`\`\`"$'\n'$'\n'
+          done
+      
+          # Save to output (escape newlines for GitHub Actions)
+          echo "digest_info<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIGEST_TEXT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./debs/amd64/opt/*.deb
+            ./debs/arm64/opt/*.deb
+            ./debs/all/*.deb
+            ./debs/SHA256SUMS
+          body: |
+            Bareos ${{ env.BF_BAREOS_VERSION }} Docker Images
+
+            ## Images Published
+            - edeckers/bareos-deps:${{ env.BF_BAREOS_VERSION }}
+            - edeckers/bareos-dir:${{ env.BF_BAREOS_VERSION }}
+            - edeckers/bareos-fd:${{ env.BF_BAREOS_VERSION }}
+            - edeckers/bareos-sd:${{ env.BF_BAREOS_VERSION }}
+            ${{ steps.check_latest.outputs.is_latest == 'true' && '- All images also tagged as `:latest`' || '' }}
+            ${{ steps.check_latest.outputs.is_latest_major == 'true' && format('- All images also tagged as `:{0}`', steps.check_latest.outputs.major_version) || '' }}
+
+            ## Docker Image Digests
+            ${{ steps.digests.outputs.digest_info }}
+      
+            ## Debian Packages
+            All compiled `.deb` packages are attached to this release.
+
+            ## License Notice
+            The `.deb` packages contain Bareos software licensed under AGPL-3.0-only.
+            Source code: https://github.com/bareos/bareos/tree/Release/24.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
