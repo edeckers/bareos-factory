@@ -10,6 +10,10 @@ Builder and publisher of Docker images for [Bareos](https://bareos.com); an open
 
 > **Note:** This project is maintained on a best-effort basis. See [Project Status](#project-status--maintenance) for details.
 
+## Quick Start
+
+Want to try it out? See [examples/](examples/) for a ready-to-use Docker Compose setup.
+
 ## Images
 
 - **edeckers/bareos-deps:25.0.1** - Contains `.deb` packages for all Bareos components
@@ -35,19 +39,27 @@ To run a complete Bareos backup infrastructure, you need:
 
 These images assume you will provide your own PostgreSQL instance and handle network configuration appropriate for your environment.
 
-## Quick Start
+## Getting Started
 
 ### Director
 
 ```bash
-# Start with defaults
-docker run -d --name bareos-dir edeckers/bareos-dir:25.0.1
+# Initialize databaser, first time setup. Use your own credentials
+docker run --rm \
+  -e DB_ADMIN_USER=bareos
+  -e DB_ADMIN_PASSWORD=bareos \
+  -e PGDATABASE=bareos \
+  edeckers/bareos-dir:25.0.1 db:init
 
-# Initialize database
-docker run --rm edeckers/bareos-dir:25.0.1 db:init
-
-# Update database schema
-docker run --rm edeckers/bareos-dir:25.0.1 db:update
+# Start Director, use your own credentials
+docker run -d \
+  --name bareos-dir \
+  -e DB_HOST=postgres \
+  -e DB_PORT=5432 \
+  -e DB_NAME=bareos \
+  -e DB_USER=postgres \
+  -e DB_PASSWORD=bareos \
+  edeckers/bareos-dir:25.0.1
 ```
 
 ### File Daemon

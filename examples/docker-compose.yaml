@@ -1,0 +1,77 @@
+services:
+  # PostgreSQL database for Bareos Director catalog
+  postgres:
+    image: postgres:18-alpine
+    container_name: bareos-postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: bareos
+      POSTGRES_PASSWORD: bareos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bareos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bareos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  director:
+    image: edeckers/bareos-dir:25.0.1
+    container_name: bareos-director
+    hostname: bareos-dir
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: bareos
+      DB_USER: bareos
+      DB_PASSWORD: bareos
+    ports:
+      - "9101:9101"
+    volumes:
+      - ./config/bareos-dir/bareos-dir.d:/etc/bareos/bareos-dir.d:ro
+    networks:
+      - bareos
+    restart: unless-stopped
+
+  storage:
+    image: edeckers/bareos-sd:25.0.1
+    container_name: bareos-storage
+    hostname: bareos-sd
+    ports:
+      - "9103:9103"
+    volumes:
+      - storage_config:/etc/bareos
+      - storage_data:/var/lib/bareos/storage
+    networks:
+      - bareos
+    restart: unless-stopped
+
+  filedaemon:
+    image: edeckers/bareos-fd:25.0.1
+    container_name: bareos-filedaemon
+    hostname: bareos-fd
+    ports:
+      - "9102:9102"
+    volumes:
+      - filedaemon_config:/etc/bareos
+      - ./config/bareos-fd/bareos-fd.d:/etc/bareos/bareos-fd.d:ro
+      # Mount directories you want to backup
+      # - /path/to/backup:/data:ro
+    networks:
+      - bareos
+    restart: unless-stopped
+
+networks:
+  bareos:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  storage_config:
+  storage_data:
+  filedaemon_config:
