@@ -3,7 +3,7 @@
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-edeckers%2Fbareos-blue?logo=docker)](https://hub.docker.com/u/edeckers)
 [![Release](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml/badge.svg)](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml)
 [![License](https://img.shields.io/badge/License-MPL--2.0-blue.svg)](https://opensource.org/licenses/MPL-2.0)
-[![Bareos](https://img.shields.io/badge/Bareos-25.0.1-green)](https://github.com/bareos/bareos)
+[![Bareos](https://img.shields.io/badge/Bareos-25.0.2-green)](https://github.com/bareos/bareos)
 [![Multi-Arch](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-lightgrey)](https://github.com/edeckers/bareos-factory)
 
 Builder and publisher of Docker images for [Bareos](https://bareos.com); an open-source backup, archiving, and recovery solution for enterprise data protection.
@@ -16,10 +16,10 @@ Want to try it out? See [examples/](examples/) for a ready-to-use Docker Compose
 
 ## Images
 
-- **edeckers/bareos-deps:25.0.1** - Contains `.deb` packages for all Bareos components
-- **edeckers/bareos-dir:25.0.1** - Bareos Director
-- **edeckers/bareos-fd:25.0.1** - Bareos File Daemon
-- **edeckers/bareos-sd:25.0.1** - Bareos Storage Daemon
+- **edeckers/bareos-deps:25.0.2** - Contains `.deb` packages for all Bareos components
+- **edeckers/bareos-dir:25.0.2** - Bareos Director
+- **edeckers/bareos-fd:25.0.2** - Bareos File Daemon
+- **edeckers/bareos-sd:25.0.2** - Bareos Storage Daemon
 
 ## Requirements
 
@@ -49,7 +49,7 @@ docker run --rm \
   -e DB_ADMIN_USER=bareos
   -e DB_ADMIN_PASSWORD=bareos \
   -e PGDATABASE=bareos \
-  edeckers/bareos-dir:25.0.1 db:init
+  edeckers/bareos-dir:25.0.2 db:init
 
 # Start Director, use your own credentials
 docker run -d \
@@ -59,19 +59,19 @@ docker run -d \
   -e DB_NAME=bareos \
   -e DB_USER=postgres \
   -e DB_PASSWORD=bareos \
-  edeckers/bareos-dir:25.0.1
+  edeckers/bareos-dir:25.0.2
 ```
 
 ### File Daemon
 
 ```bash
-docker run -d --name bareos-fd edeckers/bareos-fd:25.0.1
+docker run -d --name bareos-fd edeckers/bareos-fd:25.0.2
 ```
 
 ### Storage Daemon
 
 ```bash
-docker run -d --name bareos-sd edeckers/bareos-sd:25.0.1
+docker run -d --name bareos-sd edeckers/bareos-sd:25.0.2
 ```
 
 ## Environment Variables
@@ -106,7 +106,7 @@ Example:
 docker run --rm \
   -e DB_HOST=postgres \
   -e DB_PASSWORD=bareos \
-  edeckers/bareos-dir:25.0.1 db:init
+  edeckers/bareos-dir:25.0.2 db:init
 ```
 
 ## Architecture Support
@@ -121,7 +121,7 @@ Configure the build process using these environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `BF_BAREOS_VERSION` | `25.0.1` | Bareos version to build |
+| `BF_BAREOS_VERSION` | `25.0.2` | Bareos version to build |
 | `BF_POSTGRES_VERSION` | `18` | PostgreSQL version |
 | `BF_BUILD_DEPS` | `1` | Build bareos-deps (0 to skip) |
 | `BF_BUILD_DIR` | `1` | Build bareos-dir (0 to skip) |
@@ -158,7 +158,7 @@ All containers start with reasonable defaults when run without arguments. Mount 
 ```bash
 docker run -d \
   -v /path/to/config:/etc/bareos \
-  edeckers/bareos-dir:25.0.1
+  edeckers/bareos-dir:25.0.2
 ```
 
 ## Troubleshooting
@@ -166,7 +166,7 @@ docker run -d \
 ### Permission Issues
 If the File Daemon cannot access certain files, run the container as root:
 ```bash
-docker run -d --user root --name bareos-fd edeckers/bareos-fd:25.0.1
+docker run -d --user root --name bareos-fd edeckers/bareos-fd:25.0.2
 ```
 
 ### Database Connection Issues
@@ -214,7 +214,7 @@ When exploring Bareos, I found [this Bareos Docker repository of @barcus](https:
 The Bareos software built and distributed through these Docker images is licensed under **AGPL-3.0-only**.
 
 - Bareos source code: https://github.com/bareos/bareos
-- Bareos version: 25.0.1
+- Bareos version: 25.0.2
 - Bareos license: https://github.com/bareos/bareos/blob/master/LICENSE.txt
 
 By using these Docker images, you agree to comply with the AGPL-3.0-only license terms for Bareos.

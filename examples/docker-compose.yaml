@@ -18,7 +18,7 @@ services:
       retries: 5
 
   director:
-    image: edeckers/bareos-dir:25.0.1
+    image: edeckers/bareos-dir:25.0.2
     container_name: bareos-director
     hostname: bareos-dir
     depends_on:
@@ -39,7 +39,7 @@ services:
     restart: unless-stopped
 
   storage:
-    image: edeckers/bareos-sd:25.0.1
+    image: edeckers/bareos-sd:25.0.2
     container_name: bareos-storage
     hostname: bareos-sd
     ports:
@@ -52,7 +52,7 @@ services:
     restart: unless-stopped
 
   filedaemon:
-    image: edeckers/bareos-fd:25.0.1
+    image: edeckers/bareos-fd:25.0.2
     container_name: bareos-filedaemon
     hostname: bareos-fd
     ports:
