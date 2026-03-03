@@ -34,6 +34,7 @@ services:
       - "9101:9101"
     volumes:
       - ./config/bareos-dir/bareos-dir.d:/etc/bareos/bareos-dir.d:ro
+      - ./config/bareos-dir/bconsole.conf:/etc/bareos/bconsole.conf:ro
     networks:
       - bareos
     restart: unless-stopped
