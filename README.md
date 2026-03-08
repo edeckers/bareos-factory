@@ -1,12 +1,12 @@
-# Bareos Factory
+# Bareos Factory - Docker images for Bareos Backup
 
-[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-edeckers%2Fbareos-blue?logo=docker)](https://hub.docker.com/u/edeckers)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-edeckers%2Fbareos-blue?logo=docker)](https://hub.docker.com/r/edeckers/bareos-dir)
 [![Release](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml/badge.svg)](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml)
 [![License](https://img.shields.io/badge/License-MPL--2.0-blue.svg)](https://opensource.org/licenses/MPL-2.0)
 [![Bareos](https://img.shields.io/badge/Bareos-25.0.2-green)](https://github.com/bareos/bareos)
 [![Multi-Arch](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-lightgrey)](https://github.com/edeckers/bareos-factory)
 
-Builder and publisher of Docker images for [Bareos](https://bareos.com); an open-source backup, archiving, and recovery solution for enterprise data protection.
+Run [Bareos](https://bareos.com) in Docker with multi-architecture support (amd64/arm64). These images provide a containerized Bareos backup infrastructure - Director, Storage Daemon, and File Daemon - ready to deploy with Docker Compose.
 
 > **Note:** This project is maintained on a best-effort basis. See [Project Status](#project-status--maintenance) for details.
 
@@ -16,10 +16,12 @@ Want to try it out? See [examples/](examples/) for a ready-to-use Docker Compose
 
 ## Images
 
-- **edeckers/bareos-deps:25.0.2** - Contains `.deb` packages for all Bareos components
-- **edeckers/bareos-dir:25.0.2** - Bareos Director
-- **edeckers/bareos-fd:25.0.2** - Bareos File Daemon
-- **edeckers/bareos-sd:25.0.2** - Bareos Storage Daemon
+| Image                                                                          | Description                               |
+|--------------------------------------------------------------------------------|-------------------------------------------|
+| [`edeckers/bareos-dir:25.0.2`](https://hub.docker.com/r/edeckers/bareos-dir)   | Bareos Director                           |
+| [`edeckers/bareos-fd:25.0.2`](https://hub.docker.com/r/edeckers/bareos-fd)     | Bareos File Daemon                        |
+| [`edeckers/bareos-sd:25.0.2`](https://hub.docker.com/r/edeckers/bareos-sd)     | Bareos Storage Daemon                     |
+| [`edeckers/bareos-deps:25.0.2`](https://hub.docker.com/r/edeckers/bareos-deps) | `.deb` packages for all Bareos components |
 
 ## Requirements
 
