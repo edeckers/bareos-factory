@@ -1,10 +1,10 @@
-ARG BAREOS_VERSION="25.0.2"
+ARG BAREOS_VERSION="25.0.3"
 
 FROM edeckers/bareos-deps:$BAREOS_VERSION AS bareos-deps
 
 FROM ubuntu:noble
 
-ARG BAREOS_VERSION="25.0.2"
+ARG BAREOS_VERSION="25.0.3"
 ARG POSTGRES_VERSION
 
 LABEL maintainer="rough.grip1725@fastmail.com"
