@@ -48,6 +48,7 @@ services:
     volumes:
       - storage_config:/etc/bareos
       - storage_data:/var/lib/bareos/storage
+      - ./config/bareos-sd/bareos-sd.d/director/bareos-dir.conf:/etc/bareos/bareos-sd.d/director/bareos-dir.conf:ro
     networks:
       - bareos
     restart: unless-stopped
