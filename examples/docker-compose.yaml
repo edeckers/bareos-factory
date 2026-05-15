@@ -4,15 +4,14 @@ services:
     image: postgres:18-alpine
     container_name: bareos-postgres
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: bareos
-      POSTGRES_PASSWORD: bareos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:
       - bareos
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bareos"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5

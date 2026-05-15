@@ -35,13 +35,12 @@ Before starting the services, initialize the Bareos database schema:
 
 ```bash
 docker compose run --rm \
-  -e DB_ADMIN_USER=bareos \
-  -e DB_ADMIN_PASSWORD=bareos \
-  -e PGDATABASE=bareos \
+  -e DB_ADMIN_USER=postgres \
+  -e DB_ADMIN_PASSWORD=postgres \
   director db:init
 ```
 
-This creates the necessary tables and grants privileges. Only run this once during initial setup.
+This connects to PostgreSQL as the cluster admin (`postgres`) to create the `bareos` database, tables, and the `bareos` catalog role used at runtime. Only run this once during initial setup.
 
 ### 2. Access the Director Console
 
