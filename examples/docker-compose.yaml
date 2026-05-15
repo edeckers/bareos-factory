@@ -46,8 +46,10 @@ services:
     ports:
       - "9103:9103"
     volumes:
-      - storage_config:/etc/bareos
+      # Disabled — removing entirely in next release.
+      # - storage_config:/etc/bareos
       - storage_data:/var/lib/bareos/storage
+      - ./config/bareos-sd/bareos-sd.d/director/bareos-dir.conf:/etc/bareos/bareos-sd.d/director/bareos-dir.conf:ro
     networks:
       - bareos
     restart: unless-stopped
@@ -59,7 +61,8 @@ services:
     ports:
       - "9102:9102"
     volumes:
-      - filedaemon_config:/etc/bareos
+      # Disabled — removing entirely in next release.
+      # - filedaemon_config:/etc/bareos
       - ./config/bareos-fd/bareos-fd.d:/etc/bareos/bareos-fd.d:ro
       # Mount directories you want to backup
       # - /path/to/backup:/data:ro
@@ -73,6 +76,7 @@ networks:
 
 volumes:
   postgres_data:
-  storage_config:
   storage_data:
-  filedaemon_config:
+  # Disabled — removing entirely in next release.
+  # storage_config:
+  # filedaemon_config:

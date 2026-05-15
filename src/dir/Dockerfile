@@ -43,7 +43,8 @@ RUN rm -rf /var/lib/apt/lists/*
 
 EXPOSE 9101
 
-VOLUME /etc/bareos
+# Disabled — removing entirely in next release.
+# VOLUME /etc/bareos
 
 USER bareos
 
