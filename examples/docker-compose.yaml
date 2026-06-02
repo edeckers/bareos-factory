@@ -72,6 +72,9 @@ services:
     image: edeckers/bareos-fd:25.0.3
     container_name: bareos-filedaemon
     hostname: bareos-fd
+    # Backup agents need root to read files they don't own. Without this the FD
+    # can only back up bareos:bareos files, which is useless for real backups.
+    user: root
     depends_on:
       catalog-init:
         condition: service_completed_successfully
