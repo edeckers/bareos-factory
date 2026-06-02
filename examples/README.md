@@ -52,6 +52,33 @@ docker compose exec director bconsole
 
 Check the status of all connected daemons by running `status all`. The Director should successfully connect to both the Storage Daemon and File Daemon.
 
+### 3. Run a Backup and Restore It
+
+The `backup-bareos-fd` job backs up `/etc`, `/home` and `/root` from the File
+Daemon (its `LinuxDefault` fileset). Run it from bconsole:
+
+```
+*run job=backup-bareos-fd yes
+*wait
+*messages
+```
+
+The job should end with `Termination: Backup OK`. To prove the files round-trip,
+restore the most recent backup into a scratch directory:
+
+```
+*restore client=bareos-fd select all done
+yes
+```
+
+Restored files land under `/tmp/bareos-restores` inside the File Daemon
+container (`docker compose exec filedaemon ls /tmp/bareos-restores/etc`).
+
+The File Daemon runs as `root` (see `docker-compose.yaml`) so it can read files
+it does not own, such as `/etc/shadow` or another user's home directory. That is
+what a backup agent normally needs. In production, drop it to the least
+privilege your data allows.
+
 ## Ports
 
 Exposed ports for external access:
@@ -77,6 +104,8 @@ The `BackupCatalog` job dumps the PostgreSQL catalog and backs it up. Because th
 3. The File Daemon mounts that volume read-only and backs the dump up through the `Catalog` fileset.
 
 A one-shot `catalog-init` service runs first to `chown` the volume to the `bareos` user. A fresh named volume is owned by root, and the Director runs as an unprivileged user, so without this step it could not write the dump. This is the Compose equivalent of a Kubernetes initContainer.
+
+The job's bootstrap (the recipe to restore the catalog without a working catalog) is saved to a file and also printed to the Director's log, so you can watch it with `docker compose logs director`.
 
 ## Further Reading
 
