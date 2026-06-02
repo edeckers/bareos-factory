@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 5
 
+  # Makes the shared catalog_dump volume writable by the bareos user.
+  # See examples/README.md "Catalog Backup" for why this is needed.
+  catalog-init:
+    image: edeckers/bareos-dir:25.0.3
+    container_name: bareos-catalog-init
+    user: root
+    entrypoint: ["chown", "-R", "bareos:bareos", "/backups/bareos/catalog"]
+    volumes:
+      - catalog_dump:/backups/bareos/catalog
+    restart: "no"
+
   director:
     image: edeckers/bareos-dir:25.0.3
     container_name: bareos-director
@@ -23,6 +34,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      catalog-init:
+        condition: service_completed_successfully
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -34,6 +47,8 @@ services:
     volumes:
       - ./config/bareos-dir/bareos-dir.d:/etc/bareos/bareos-dir.d:ro
       - ./config/bareos-dir/bconsole.conf:/etc/bareos/bconsole.conf:ro
+      # Shared catalog dump: Director writes here (RunBeforeJob), FD reads it.
+      - catalog_dump:/backups/bareos/catalog
     networks:
       - bareos
     restart: unless-stopped
@@ -45,7 +60,7 @@ services:
     ports:
       - "9103:9103"
     volumes:
-      # Disabled — removing entirely in next release.
+      # Disabled: removing entirely in next release.
       # - storage_config:/etc/bareos
       - storage_data:/var/lib/bareos/storage
       - ./config/bareos-sd/bareos-sd.d/director/bareos-dir.conf:/etc/bareos/bareos-sd.d/director/bareos-dir.conf:ro
@@ -57,12 +72,17 @@ services:
     image: edeckers/bareos-fd:25.0.3
     container_name: bareos-filedaemon
     hostname: bareos-fd
+    depends_on:
+      catalog-init:
+        condition: service_completed_successfully
     ports:
       - "9102:9102"
     volumes:
-      # Disabled — removing entirely in next release.
+      # Disabled: removing entirely in next release.
       # - filedaemon_config:/etc/bareos
       - ./config/bareos-fd/bareos-fd.d:/etc/bareos/bareos-fd.d:ro
+      # Shared catalog dump (read-only): the BackupCatalog job reads bareos.sql here.
+      - catalog_dump:/backups/bareos/catalog:ro
       # Mount directories you want to backup
       # - /path/to/backup:/data:ro
     networks:
@@ -76,6 +96,9 @@ networks:
 volumes:
   postgres_data:
   storage_data:
-  # Disabled — removing entirely in next release.
+  # Shared between Director (rw) and File Daemon (ro) so the catalog dump the
+  # Director writes is visible to the FD that backs it up.
+  catalog_dump:
+  # Disabled: removing entirely in next release.
   # storage_config:
   # filedaemon_config:
