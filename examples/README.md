@@ -66,7 +66,17 @@ Persistent data is stored in named volumes:
 
 - `postgres_data` - PostgreSQL database files
 - `storage_data` - Backup archives
-- `director_config`, `storage_config`, `filedaemon_config` - Additional runtime configs
+- `catalog_dump` - Catalog dump shared between the Director and File Daemon (see [Catalog Backup](#catalog-backup))
+
+## Catalog Backup
+
+The `BackupCatalog` job dumps the PostgreSQL catalog and backs it up. Because the Director and File Daemon run in separate containers, this needs a little wiring:
+
+1. The Director's `RunBeforeJob` runs `make_catalog_backup`, which writes the dump to `/var/lib/bareos/bareos.sql` inside the Director container.
+2. A second `RunBeforeJob` copies it into the shared `catalog_dump` volume at `/backups/bareos/catalog/bareos.sql`.
+3. The File Daemon mounts that volume read-only and backs the dump up through the `Catalog` fileset.
+
+A one-shot `catalog-init` service runs first to `chown` the volume to the `bareos` user. A fresh named volume is owned by root, and the Director runs as an unprivileged user, so without this step it could not write the dump. This is the Compose equivalent of a Kubernetes initContainer.
 
 ## Further Reading
 
