@@ -107,6 +107,12 @@ A one-shot `catalog-init` service runs first to `chown` the volume to the `bareo
 
 The job's bootstrap (the recipe to restore the catalog without a working catalog) is saved to a file and also printed to the Director's log, so you can watch it with `docker compose logs director`.
 
+## Before Production
+
+This is a runnable example, not a hardened production setup. It makes a few deliberate demo tradeoffs: the File Daemon backs up its own container's filesystem rather than the host, and the catalog bootstrap is stored alongside the backups instead of offsite.
+
+So, before trusting Bareos with real data, read the Bareos [Critical Items to Implement Before Production](https://docs.bareos.org/IntroductionAndTutorial/CriticalItemsToImplementBeforeProduction.html) page and check this setup against it.
+
 ## Further Reading
 
 - [Bareos Documentation](https://docs.bareos.org/)
