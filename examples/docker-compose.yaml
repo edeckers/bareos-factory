@@ -42,6 +42,13 @@ services:
       DB_NAME: bareos
       DB_USER: bareos
       DB_PASSWORD: bareos
+      # Bareos assumes filenames are UTF-8. Without a UTF-8 locale, non-ASCII
+      # filenames can be mishandled when written to the catalog (Bareos
+      # "Critical Items to Implement Before Production" docs). Scoped per-container
+      # here so it can't affect the host; for a native install you'd set this on
+      # the systemd unit (Environment=) rather than overriding the host locale.
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
     ports:
       - "9101:9101"
     volumes:
@@ -57,6 +64,10 @@ services:
     image: edeckers/bareos-sd:25.0.3
     container_name: bareos-storage
     hostname: bareos-sd
+    environment:
+      # UTF-8 locale, same reason as the director.
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
     ports:
       - "9103:9103"
     volumes:
@@ -78,6 +89,10 @@ services:
     depends_on:
       catalog-init:
         condition: service_completed_successfully
+    environment:
+      # UTF-8 locale, same reason as the director.
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
     ports:
       - "9102:9102"
     volumes:
