@@ -1,10 +1,8 @@
 name: Check Upstream Bareos
 
 on:
-  # Disabled until the mainline-PR / older-major-issue split is verified.
-  # Re-enable by uncommenting the schedule.
-  # schedule:
-  #   - cron: '0 6 * * *'
+  schedule:
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
