@@ -1,0 +1,57 @@
+name: Check Upstream Bareos
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.scan.outputs.versions }}
+      base: ${{ steps.scan.outputs.base }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0  # need our release tags for the per-major floor
+
+      - name: Find releases we are missing
+        id: scan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          have="$(git tag | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | paste -sd,)"
+          versions="$(bin/check-upstream.py \
+            | bin/filter-releases.py --have "${have}" --latest-majors 2 \
+                --skip-file .bareos-skip-releases \
+            | python3 -c 'import sys, json; print(json.dumps(sys.stdin.read().split()))')"
+          echo "versions=${versions}" >> "$GITHUB_OUTPUT"
+          echo "base=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+  propose-bumps:
+    needs: detect
+    if: needs.detect.outputs.versions != '[]' && needs.detect.outputs.versions != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJson(needs.detect.outputs.versions) }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ needs.detect.outputs.base }}
+
+      - name: Bump to ${{ matrix.version }}
+        run: bin/bump.sh "${{ matrix.version }}"
+
+      - name: Open or update PR for ${{ matrix.version }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bin/create-pr.sh "${{ matrix.version }}" "${{ needs.detect.outputs.base }}"

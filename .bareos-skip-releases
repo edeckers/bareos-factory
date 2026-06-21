@@ -1,0 +1,9 @@
+# Bareos upstream releases the auto-bump should never propose.
+# One version per line (X.Y.Z). Blank lines and # comments are ignored.
+#
+# Use this for a release we evaluated and deliberately do not want to ship,
+# e.g. one that is broken or superseded within a day. Without it, the daily
+# check re-opens a PR for that version every run.
+#
+# Example:
+# 25.0.4

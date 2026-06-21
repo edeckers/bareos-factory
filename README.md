@@ -153,6 +153,10 @@ BF_BUILD_DEPS=1 BF_BUILD_DIR=1 BF_BUILD_FD=1 BF_BUILD_SD=0 build.sh
 BF_BAREOS_VERSION=x.y.z ./build.sh
 ```
 
+## Tracking upstream releases
+
+A scheduled GitHub Action watches Bareos for new releases on the two latest major lines and opens a pull request for each version we are missing. See [Tracking upstream Bareos releases](docs/upstream-tracking.md) for how the detection works, the per-major floor that avoids back-filling skipped versions, and the `.bareos-skip-releases` opt-out.
+
 ## Configuration
 
 All containers start with reasonable defaults when run without arguments. Mount your configuration files to customize behavior:
