@@ -5,3 +5,5 @@
 !.gitignore
 
 !.bareos-skip-releases
+
+!.bareos-version

@@ -1,8 +1,10 @@
 name: Check Upstream Bareos
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
+  # Disabled until the mainline-PR / older-major-issue split is verified.
+  # Re-enable by uncommenting the schedule.
+  # schedule:
+  #   - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -39,6 +41,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     strategy:
       fail-fast: false
       matrix:
@@ -48,10 +51,20 @@ jobs:
         with:
           ref: ${{ needs.detect.outputs.base }}
 
-      - name: Bump to ${{ matrix.version }}
-        run: bin/bump.sh "${{ matrix.version }}"
-
-      - name: Open or update PR for ${{ matrix.version }}
+      - name: Propose ${{ matrix.version }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bin/create-pr.sh "${{ matrix.version }}" "${{ needs.detect.outputs.base }}"
+        run: |
+          # Mainline major comes from .bareos-version, read BEFORE bump.sh
+          # rewrites it. Same major as the version we ship -> PR into develop;
+          # an older tracked major -> branch + tracking issue, never merged.
+          mainline_major="$(cut -d. -f1 .bareos-version)"
+          version_major="$(echo "${{ matrix.version }}" | cut -d. -f1)"
+
+          bin/bump.sh "${{ matrix.version }}"
+
+          if [ "${version_major}" = "${mainline_major}" ]; then
+            bin/create-pr.sh "${{ matrix.version }}" "${{ needs.detect.outputs.base }}"
+          else
+            bin/open-bump-issue.sh "${{ matrix.version }}"
+          fi

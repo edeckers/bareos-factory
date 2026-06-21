@@ -14,8 +14,21 @@ env:
   BF_POSTGRES_VERSION: 18
 
 jobs:
+  # Resolve the Bareos source version from .bareos-version. This is what the
+  # build checks out and what the release notes link to. The git tag is the
+  # image/release version and may diverge from it (e.g. 25.0.3-supply-chain-fix-1).
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      bareos: ${{ steps.read.outputs.bareos }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - id: read
+        run: echo "bareos=$(cat .bareos-version)" >> "$GITHUB_OUTPUT"
+
   # Step 1: Build deps per-arch
   build-deps:
+    needs: [version]
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -47,7 +60,7 @@ jobs:
           context: ./src/deps
           platforms: ${{ matrix.platform }}
           build-args: |
-            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+            BAREOS_VERSION=${{ needs.version.outputs.bareos }}
             POSTGRES_VERSION=${{ env.BF_POSTGRES_VERSION }}
           outputs: type=image,name=edeckers/bareos-deps,push-by-digest=true,name-canonical=true,push=true
           provenance: mode=max
@@ -106,7 +119,7 @@ jobs:
   # Step 3: Build dir/fd/sd per-arch (deps manifest is now available)
   build-services:
     runs-on: ${{ matrix.runner }}
-    needs: [merge-deps]
+    needs: [merge-deps, version]
     strategy:
       matrix:
         include:
@@ -137,7 +150,7 @@ jobs:
           context: ./src/dir
           platforms: ${{ matrix.platform }}
           build-args: |
-            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+            BAREOS_VERSION=${{ needs.version.outputs.bareos }}
             POSTGRES_VERSION=${{ env.BF_POSTGRES_VERSION }}
           outputs: type=image,name=edeckers/bareos-dir,push-by-digest=true,name-canonical=true,push=true
           provenance: mode=max
@@ -152,7 +165,7 @@ jobs:
           context: ./src/fd
           platforms: ${{ matrix.platform }}
           build-args: |
-            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+            BAREOS_VERSION=${{ needs.version.outputs.bareos }}
           outputs: type=image,name=edeckers/bareos-fd,push-by-digest=true,name-canonical=true,push=true
           provenance: mode=max
           sbom: true
@@ -166,7 +179,7 @@ jobs:
           context: ./src/sd
           platforms: ${{ matrix.platform }}
           build-args: |
-            BAREOS_VERSION=${{ env.BF_BAREOS_VERSION }}
+            BAREOS_VERSION=${{ needs.version.outputs.bareos }}
           outputs: type=image,name=edeckers/bareos-sd,push-by-digest=true,name-canonical=true,push=true
           provenance: mode=max
           sbom: true
@@ -230,7 +243,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [merge-services]
+    needs: [merge-services, version]
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -362,6 +375,14 @@ jobs:
 
             ## License Notice
             The `.deb` packages contain Bareos software licensed under AGPL-3.0-only.
-            Source code: https://github.com/bareos/bareos/tree/Release/25.0.3
+            Source code: https://github.com/bareos/bareos/tree/Release/${{ needs.version.outputs.bareos }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete bump branch if present
+        run: |
+          branch="bump/bareos-${{ github.ref_name }}"
+          if git ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
+            echo "Deleting ${branch} now that ${{ github.ref_name }} is released."
+            git push origin --delete "${branch}"
+          fi

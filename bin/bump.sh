@@ -2,8 +2,15 @@
 
 set -e
 
-# Current version (will be updated by this script)
-CURRENT_VERSION="25.0.3"
+# Single source of truth for the Bareos version. The blanket replace below
+# rewrites this file too (it holds exactly CURRENT_VERSION), so it advances
+# along with everything else.
+VERSION_FILE=".bareos-version"
+if [ ! -s "$VERSION_FILE" ]; then
+    echo "Error: $VERSION_FILE is missing or empty" >&2
+    exit 1
+fi
+CURRENT_VERSION="$(cat "$VERSION_FILE")"
 
 # Check if version argument is provided
 if [ -z "$1" ]; then
@@ -28,13 +35,15 @@ echo ""
 
 echo "Updating all files in repository..."
 
+# Skip .github/workflows: the bot's token can't push workflow changes, and the
+# version there is read from .bareos-version, not hardcoded, so nothing to bump.
 # Use different sed syntax for macOS vs Linux
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
-    find . -type f -not -path "./.git/*" -exec sed -i '' "s/$CURRENT_VERSION/$NEW_VERSION/g" {} +
+    find . -type f -not -path "./.git/*" -not -path "./.github/workflows/*" -exec sed -i '' "s/$CURRENT_VERSION/$NEW_VERSION/g" {} +
 else
     # Linux
-    find . -type f -not -path "./.git/*" -exec sed -i "s/$CURRENT_VERSION/$NEW_VERSION/g" {} +
+    find . -type f -not -path "./.git/*" -not -path "./.github/workflows/*" -exec sed -i "s/$CURRENT_VERSION/$NEW_VERSION/g" {} +
 fi
 
 echo ""
