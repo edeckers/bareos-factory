@@ -1,7 +1,7 @@
 # Bareos Factory - Docker images for Bareos Backup
 
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-edeckers%2Fbareos-blue?logo=docker)](https://hub.docker.com/r/edeckers/bareos-dir)
-[![Release](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml/badge.svg)](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml)
+[![Release](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml/badge.svg?branch=25.0.3)](https://github.com/edeckers/bareos-factory/actions/workflows/release.yaml)
 [![License](https://img.shields.io/badge/License-MPL--2.0-blue.svg)](https://opensource.org/licenses/MPL-2.0)
 [![Bareos](https://img.shields.io/badge/Bareos-25.0.3-green)](https://github.com/bareos/bareos)
 [![Multi-Arch](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-lightgrey)](https://github.com/edeckers/bareos-factory)
