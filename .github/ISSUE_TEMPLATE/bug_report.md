@@ -10,7 +10,7 @@ assignees: ''
 A clear and concise description of what is wrong.
 
 **Image(s) and tag**
-e.g. `edeckers/bareos-dir:25.0.3`, arch `amd64` / `arm64`.
+e.g. `edeckers/bareos-dir:24.0.10`, arch `amd64` / `arm64`.
 
 **To reproduce**
 Steps, plus the relevant `docker run` / `docker compose` config:
@@ -31,7 +31,7 @@ Paste relevant logs in a fenced code block, not as plain text:
 - Host OS / arch: [e.g. Ubuntu 24.04, arm64]
 - Docker: [output of `docker --version`]
 - Compose: [output of `docker compose version`]
-- Bareos / image version: [e.g. 25.0.3]
+- Bareos / image version: [e.g. 24.0.10]
 
 **Additional context**
 Anything else relevant.
