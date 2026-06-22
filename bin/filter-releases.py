@@ -20,7 +20,7 @@ The per-major floor is what keeps this honest. We do not back-fill: if we shippe
 proposed. A major we have no release for at all is treated as new and starts at
 upstream's current head (one PR), not its whole history.
 
-  --have 24.0.8,25.0.3   versions we already ship (our git tags)
+  --have 24.0.8,24.0.9   versions we already ship (our git tags)
   --skip-file PATH       versions to never propose (one X.Y.Z per line; blank
                          lines and # comments ignored)
 

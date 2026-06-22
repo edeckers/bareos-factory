@@ -7,7 +7,7 @@ Pure I/O: every "which of these do we want" decision (stable only, which major
 lines, newer than what we ship) lives in filter-releases.py, so this stays a
 dumb fetch you can eyeball or pipe elsewhere:
 
-    check-upstream.py | filter-releases.py --since 25.0.3 --latest-majors 2
+    check-upstream.py | filter-releases.py --since 24.0.9 --latest-majors 2
 
 Stdlib only. Honours $GITHUB_TOKEN/$GH_TOKEN if set (just to dodge the
 unauthenticated API rate limit); runs fine without one.

@@ -19,7 +19,7 @@ services:
   # Makes the shared catalog_dump volume writable by the bareos user.
   # See examples/README.md "Catalog Backup" for why this is needed.
   catalog-init:
-    image: edeckers/bareos-dir:25.0.3
+    image: edeckers/bareos-dir:24.0.9
     container_name: bareos-catalog-init
     user: root
     entrypoint: ["chown", "-R", "bareos:bareos", "/backups/bareos/catalog"]
@@ -28,7 +28,7 @@ services:
     restart: "no"
 
   director:
-    image: edeckers/bareos-dir:25.0.3
+    image: edeckers/bareos-dir:24.0.9
     container_name: bareos-director
     hostname: bareos-dir
     depends_on:
@@ -61,7 +61,7 @@ services:
     restart: unless-stopped
 
   storage:
-    image: edeckers/bareos-sd:25.0.3
+    image: edeckers/bareos-sd:24.0.9
     container_name: bareos-storage
     hostname: bareos-sd
     environment:
@@ -80,7 +80,7 @@ services:
     restart: unless-stopped
 
   filedaemon:
-    image: edeckers/bareos-fd:25.0.3
+    image: edeckers/bareos-fd:24.0.9
     container_name: bareos-filedaemon
     hostname: bareos-fd
     # Backup agents need root to read files they don't own. Without this the FD

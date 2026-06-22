@@ -15,7 +15,7 @@ CURRENT_VERSION="$(cat "$VERSION_FILE")"
 # Check if version argument is provided
 if [ -z "$1" ]; then
     echo "Usage: $0 <new_version>"
-    echo "Example: $0 25.0.3"
+    echo "Example: $0 24.0.9"
     echo ""
     echo "Current version: $CURRENT_VERSION"
     exit 1
@@ -25,7 +25,7 @@ NEW_VERSION="$1"
 
 # Validate version format (basic check for X.Y.Z)
 if ! [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "Error: Version must be in format X.Y.Z (e.g., 25.0.3)"
+    echo "Error: Version must be in format X.Y.Z (e.g., 24.0.9)"
     exit 1
 fi
 

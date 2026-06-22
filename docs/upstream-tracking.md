@@ -40,7 +40,7 @@ Major lines come from `--latest-majors N` (the N highest majors upstream) or an 
 For each tracked major, the floor is the highest version we already ship on that line; only upstream releases above it are proposed. This is what keeps the comparison honest:
 
 - **No back-fill.** If we shipped `24.0.0` then jumped to `24.0.8`, the floor on the 24 line is `24.0.8`, so `24.0.1`..`24.0.7` are never proposed. We do not resurrect versions we deliberately skipped.
-- **Catches lagging lines.** If we are on `25.0.3` but Bareos has also published `24.0.9` and `24.0.10`, both are proposed even though they are older than `25.0.3`. A simple "newest release" check would miss them.
+- **Catches lagging lines.** If we are on `24.0.9` but Bareos has also published `24.0.9` and `24.0.10`, both are proposed even though they are older than `24.0.9`. A simple "newest release" check would miss them.
 - **New majors start at the head.** A major we have no release for at all (a brand-new line) is proposed at upstream's current head only, as a single item, rather than its entire back catalogue.
 
 ### 3. `bump.sh`: apply
@@ -69,7 +69,7 @@ This is also why a back-major release needs no merge: the build reads the versio
 
 Merging a PR or reviewing an issue branch records the bump. **Pushing the tag `X.Y.Z` is what triggers the [build and release workflow](../.github/workflows/release.yaml).** The bump and the release are deliberately separate, so a human decides when a version ships.
 
-At release time the workflow reads `.bareos-version` (on the tagged commit) for the Bareos checkout and the source-code link, while the git tag drives the image tags and the GitHub release name. Because those are separate, you can ship a rebuild under a divergent tag: tag `25.0.3-supply-chain-fix-1` while the file still says `25.0.3`, and it builds Bareos `25.0.3` and ships it under your fix tag.
+At release time the workflow reads `.bareos-version` (on the tagged commit) for the Bareos checkout and the source-code link, while the git tag drives the image tags and the GitHub release name. Because those are separate, you can ship a rebuild under a divergent tag: tag `24.0.9-supply-chain-fix-1` while the file still says `24.0.9`, and it builds Bareos `24.0.9` and ships it under your fix tag.
 
 Bump branches clean themselves up. Merged mainline PR branches are removed by the repo's "automatically delete head branches" setting; older-major branches are deleted by the release workflow once their tag is published.
 
