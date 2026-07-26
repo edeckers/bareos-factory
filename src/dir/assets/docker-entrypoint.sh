@@ -13,13 +13,13 @@ wait_for_db() {
             --host="${DB_HOST}" \
             --port="${DB_PORT}" \
             --user="${DB_USER}" \
-            --dbname="bareos" >/dev/null 2>&1; then
+            --dbname="${DB_NAME}" >/dev/null 2>&1; then
             echo "PostgreSQL database is ready"
             break
-        else
-            echo "Cannot connect to database. Did you initialize it with db:init? Retrying in 5 seconds"
-            sleep 5
         fi
+
+        echo "Cannot connect to database. Did you initialize it with db:init? Retrying in 5 seconds"
+        sleep 5
     done
 }
 
@@ -52,7 +52,7 @@ db_update() {
     echo "Database update completed successfully"
 }
 
-case "${1}" in
+case "${1:-app:start}" in
     db:init)
         db_init
         ;;
@@ -66,7 +66,7 @@ case "${1}" in
     app:start)
         wait_for_db
 
-	echo "Starting Bareos Director"
+        echo "Starting Bareos Director"
         /usr/sbin/bareos-dir -f
         ;;
     *)
