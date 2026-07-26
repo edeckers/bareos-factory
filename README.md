@@ -182,8 +182,9 @@ docker run -d --user root --name bareos-fd edeckers/bareos-fd:25.0.4
 ### Database Connection Issues
 Ensure PostgreSQL is accessible and credentials are correct. Test with:
 ```bash
-docker run --rm postgres:18 psql -h <DB_HOST> -U bareos -d bareos
+docker run --rm -it postgres:18 psql -h <DB_HOST> -U <DB_USER> -d <DB_NAME>
 ```
+If the database runs as a Docker Compose service, add `--network <docker-network>` so the service name resolves.
 
 ## Project Status & Maintenance
 
