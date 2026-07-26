@@ -60,8 +60,8 @@ case "${1:-app:start}" in
         db_update
         ;;
     fs:privileges)
-        find /etc/bareos ! -user ${BAREOS_DAEMON_USER} -exec chown ${BAREOS_DAEMON_USER} {} \;
-        chown -R ${BAREOS_DAEMON_USER}:${BAREOS_DAEMON_GROUP} /var/lib/bareos
+        find /etc/bareos ! -user "${BAREOS_DAEMON_USER}" -exec chown "${BAREOS_DAEMON_USER}" {} \;
+        chown -R "${BAREOS_DAEMON_USER}:${BAREOS_DAEMON_GROUP}" /var/lib/bareos
         ;;
     app:start)
         wait_for_db
