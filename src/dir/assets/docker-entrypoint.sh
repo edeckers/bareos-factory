@@ -2,9 +2,6 @@
 
 set -euo pipefail
 
-BAREOS_DAEMON_USER=${BAREOS_DAEMON_USER:-bareos}
-BAREOS_DAEMON_GROUP=${BAREOS_DAEMON_GROUP:-bareos}
-
 wait_for_db() {
     echo "Waiting for PostgreSQL database to be ready"
 
@@ -60,8 +57,9 @@ case "${1:-app:start}" in
         db_update
         ;;
     fs:privileges)
-        find /etc/bareos ! -user "${BAREOS_DAEMON_USER}" -exec chown "${BAREOS_DAEMON_USER}" {} \;
-        chown -R "${BAREOS_DAEMON_USER}:${BAREOS_DAEMON_GROUP}" /var/lib/bareos
+        target="${2:-bareos:bareos}"
+        find /etc/bareos ! -user "${target%%:*}" -exec chown "${target%%:*}" {} \;
+        chown -R "${target}" /var/lib/bareos
         ;;
     app:start)
         wait_for_db

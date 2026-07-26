@@ -17,9 +17,6 @@ LABEL org.opencontainers.image.version=$BAREOS_VERSION
 LABEL org.opencontainers.image.description="Bareos Director"
 LABEL org.opencontainers.image.source="https://github.com/edeckers/bareos-factory"
 
-ENV BAREOS_DAEMON_USER=bareos
-ENV BAREOS_DAEMON_GROUP=bareos
-
 ARG BAREOS_UID=101
 ARG BAREOS_GID=101
 
