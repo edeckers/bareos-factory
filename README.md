@@ -46,9 +46,11 @@ These images assume you will provide your own PostgreSQL instance and handle net
 ### Director
 
 ```bash
-# Initialize databaser, first time setup. Use your own credentials
+# Initialize database, first time setup. Use your own credentials
 docker run --rm \
-  -e DB_ADMIN_USER=bareos
+  -e DB_HOST=postgres \
+  -e DB_PORT=5432 \
+  -e DB_ADMIN_USER=postgres \
   -e DB_ADMIN_PASSWORD=bareos \
   -e PGDATABASE=bareos \
   edeckers/bareos-dir:25.0.4 db:init
@@ -107,7 +109,9 @@ Example:
 ```bash
 docker run --rm \
   -e DB_HOST=postgres \
-  -e DB_PASSWORD=bareos \
+  -e DB_PORT=5432 \
+  -e DB_ADMIN_USER=postgres \
+  -e DB_ADMIN_PASSWORD=bareos \
   edeckers/bareos-dir:25.0.4 db:init
 ```
 

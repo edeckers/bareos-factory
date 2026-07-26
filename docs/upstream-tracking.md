@@ -79,7 +79,7 @@ Some releases should never be proposed: a version that turned out broken, or one
 
 ## The workflow
 
-[`.github/workflows/check-upstream.yaml`](../.github/workflows/check-upstream.yaml) runs on demand (**Run workflow**), and on a daily schedule once the commented-out `schedule:` trigger is re-enabled:
+[`.github/workflows/check-upstream.yaml`](../.github/workflows/check-upstream.yaml) runs on a daily schedule and on demand (**Run workflow**):
 
 1. The `detect` job runs `check-upstream.py | filter-releases.py --have <our tags> --latest-majors 2 --skip-file .bareos-skip-releases` to produce the list of missing versions.
 2. The `propose-bumps` job fans out one run per version, each calling `bump.sh` then routing to `create-pr.sh` or `open-bump-issue.sh` by major.
