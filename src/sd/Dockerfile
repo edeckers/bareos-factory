@@ -19,6 +19,14 @@ LABEL org.opencontainers.image.source="https://github.com/edeckers/bareos-factor
 ENV BAREOS_DAEMON_USER=bareos
 ENV BAREOS_DAEMON_GROUP=bareos
 
+ARG BAREOS_UID=101
+ARG BAREOS_GID=101
+
+# Claim a fixed uid/gid before any package install, so volume ownership
+# stays stable across rebuilds
+RUN groupadd -g $BAREOS_GID bareos \
+ && useradd -r -u $BAREOS_UID -g bareos -d /var/lib/bareos -s /usr/sbin/nologin bareos
+
 COPY --from=bareos-deps /opt/*.deb /opt/dpkg/
 
 # s3cmd adds support for dplcompat backend
