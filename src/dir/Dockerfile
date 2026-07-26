@@ -43,9 +43,6 @@ RUN rm -rf /var/lib/apt/lists/*
 
 EXPOSE 9101
 
-# Disabled — removing entirely in next release.
-# VOLUME /etc/bareos
-
 USER bareos
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

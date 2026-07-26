@@ -71,8 +71,6 @@ services:
     ports:
       - "9103:9103"
     volumes:
-      # Disabled: removing entirely in next release.
-      # - storage_config:/etc/bareos
       - storage_data:/var/lib/bareos/storage
       - ./config/bareos-sd/bareos-sd.d/director/bareos-dir.conf:/etc/bareos/bareos-sd.d/director/bareos-dir.conf:ro
     networks:
@@ -96,8 +94,6 @@ services:
     ports:
       - "9102:9102"
     volumes:
-      # Disabled: removing entirely in next release.
-      # - filedaemon_config:/etc/bareos
       - ./config/bareos-fd/bareos-fd.d:/etc/bareos/bareos-fd.d:ro
       # Shared catalog dump (read-only): the BackupCatalog job reads bareos.sql here.
       - catalog_dump:/backups/bareos/catalog:ro
@@ -117,6 +113,4 @@ volumes:
   # Shared between Director (rw) and File Daemon (ro) so the catalog dump the
   # Director writes is visible to the FD that backs it up.
   catalog_dump:
-  # Disabled: removing entirely in next release.
-  # storage_config:
-  # filedaemon_config:
+

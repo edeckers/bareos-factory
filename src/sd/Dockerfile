@@ -41,9 +41,6 @@ RUN chmod u+x /docker-entrypoint.sh
 
 EXPOSE 9103
 
-# Disabled — removing entirely in next release.
-# VOLUME /etc/bareos
-
 # Persists backup archives; required state for any non-ephemeral deployment.
 VOLUME /var/lib/bareos/storage
 
