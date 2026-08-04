@@ -1,9 +1,10 @@
-ARG BAREOS_VERSION="25.1.0"
+ARG BAREOS_IMAGE_TAG="25.1.0"
 
-FROM edeckers/bareos-deps:$BAREOS_VERSION AS bareos-deps
+FROM edeckers/bareos-deps:$BAREOS_IMAGE_TAG AS bareos-deps
 
 FROM ubuntu:noble
 
+ARG BAREOS_IMAGE_TAG="25.1.0"
 ARG BAREOS_VERSION="25.1.0"
 
 LABEL maintainer="rough.grip1725@fastmail.com"
@@ -12,7 +13,7 @@ LABEL maintainer="rough.grip1725@fastmail.com"
 # AGPL-3.0-only as per Bareos licensing
 LABEL license="AGPL-3.0-only"
 
-LABEL org.opencontainers.image.version=$BAREOS_VERSION
+LABEL org.opencontainers.image.version=$BAREOS_IMAGE_TAG
 LABEL org.opencontainers.image.description="Bareos Storage Daemon"
 LABEL org.opencontainers.image.source="https://github.com/edeckers/bareos-factory"
 

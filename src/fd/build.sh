@@ -24,6 +24,7 @@ echo "For multi-arch deployment, use GitHub Actions workflow"
 
 docker build . \
   --no-cache \
+  --build-arg BAREOS_IMAGE_TAG=${BAREOS_VERSION} \
   --build-arg BAREOS_VERSION=${BAREOS_VERSION} \
   -t ${DOCKER_IMAGE}:${DOCKER_TAG}
 
