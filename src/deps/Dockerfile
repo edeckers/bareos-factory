@@ -1,6 +1,6 @@
 FROM ubuntu:noble
 
-ARG BAREOS_VERSION="25.1.0"
+ARG BAREOS_VERSION="24.0.11"
 ARG POSTGRES_VERSION
 
 LABEL maintainer="rough.grip1725@fastmail.com"
