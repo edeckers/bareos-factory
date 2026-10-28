@@ -1,11 +1,11 @@
-ARG BAREOS_IMAGE_TAG="25.1.1"
+ARG BAREOS_IMAGE_TAG="25.1.2"
 
 FROM edeckers/bareos-deps:$BAREOS_IMAGE_TAG AS bareos-deps
 
 FROM ubuntu:noble
 
-ARG BAREOS_IMAGE_TAG="25.1.1"
-ARG BAREOS_VERSION="25.1.1"
+ARG BAREOS_IMAGE_TAG="25.1.2"
+ARG BAREOS_VERSION="25.1.2"
 
 LABEL maintainer="rough.grip1725@fastmail.com"
 
