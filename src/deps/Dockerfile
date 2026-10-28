@@ -67,6 +67,11 @@ RUN case "$(dpkg --print-architecture)" in \
   && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
   && rm /tmp/node.tar.xz
 
+# The webui-vue build runs an unconditional `npm audit`, so advisories
+# published after a Bareos release break rebuilds of that release. The
+# flagged packages so far are dev tooling that never reaches the dist bundle
+ENV npm_config_audit_level=critical
+
 # Fixes https://github.com/bareos/bareos/issues/2467
 
 RUN cd /tmp \
