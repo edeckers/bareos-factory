@@ -1,4 +1,4 @@
-FROM ubuntu:noble
+FROM ubuntu:resolute
 
 ARG BAREOS_VERSION="25.1.3"
 ARG POSTGRES_VERSION

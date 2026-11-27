@@ -2,7 +2,7 @@ ARG BAREOS_IMAGE_TAG="25.1.3"
 
 FROM edeckers/bareos-deps:$BAREOS_IMAGE_TAG AS bareos-deps
 
-FROM ubuntu:noble
+FROM ubuntu:resolute
 
 ARG BAREOS_IMAGE_TAG="25.1.3"
 ARG BAREOS_VERSION="25.1.3"
