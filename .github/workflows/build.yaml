@@ -6,11 +6,15 @@ on:
       - '**'
     paths:
       - 'src/**'
+      - 'examples/**'
+      - 'bin/smoke-test.sh'
       - '.bareos-version'
       - '.github/workflows/build.yaml'
   pull_request:
     paths:
       - 'src/**'
+      - 'examples/**'
+      - 'bin/smoke-test.sh'
       - '.bareos-version'
       - '.github/workflows/build.yaml'
   # Bump branches are pushed with GITHUB_TOKEN, which never triggers push
@@ -105,3 +109,6 @@ jobs:
           tags: edeckers/bareos-sd:${{ env.BF_DEPS_TAG }}
           load: true
           provenance: false
+
+      - name: Smoke test
+        run: bin/smoke-test.sh ${{ env.BF_DEPS_TAG }}
