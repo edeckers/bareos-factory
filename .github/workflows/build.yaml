@@ -1,0 +1,107 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'src/**'
+      - '.bareos-version'
+      - '.github/workflows/build.yaml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - '.bareos-version'
+      - '.github/workflows/build.yaml'
+  # Bump branches are pushed with GITHUB_TOKEN, which never triggers push
+  # events, so those need a manual run
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BF_POSTGRES_VERSION: 18
+  BF_DEPS_TAG: ci
+
+jobs:
+  build:
+    # Same-repo PR branches already build on push
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Read Bareos version
+        id: version
+        run: echo "bareos=$(cat .bareos-version)" >> "$GITHUB_OUTPUT"
+
+      # The docker driver builds into the runner's local image store, which is
+      # how dir/fd/sd resolve a deps image that is never pushed
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+        with:
+          driver: docker
+
+      - name: Build bareos-deps
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: ./src/deps
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_VERSION=${{ steps.version.outputs.bareos }}
+            POSTGRES_VERSION=${{ env.BF_POSTGRES_VERSION }}
+          tags: edeckers/bareos-deps:${{ env.BF_DEPS_TAG }}
+          load: true
+          provenance: false
+
+      - name: Build bareos-dir
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: ./src/dir
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_IMAGE_TAG=${{ env.BF_DEPS_TAG }}
+            BAREOS_VERSION=${{ steps.version.outputs.bareos }}
+            POSTGRES_VERSION=${{ env.BF_POSTGRES_VERSION }}
+          tags: edeckers/bareos-dir:${{ env.BF_DEPS_TAG }}
+          load: true
+          provenance: false
+
+      - name: Build bareos-fd
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: ./src/fd
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_IMAGE_TAG=${{ env.BF_DEPS_TAG }}
+            BAREOS_VERSION=${{ steps.version.outputs.bareos }}
+          tags: edeckers/bareos-fd:${{ env.BF_DEPS_TAG }}
+          load: true
+          provenance: false
+
+      - name: Build bareos-sd
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: ./src/sd
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            BAREOS_IMAGE_TAG=${{ env.BF_DEPS_TAG }}
+            BAREOS_VERSION=${{ steps.version.outputs.bareos }}
+          tags: edeckers/bareos-sd:${{ env.BF_DEPS_TAG }}
+          load: true
+          provenance: false
